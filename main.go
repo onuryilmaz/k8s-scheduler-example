@@ -52,18 +52,19 @@ func main() {
 	}
 
 	fmt.Printf("Starting scheduler: %s\n", *schedulerName)
-	// Check for pods
-	for {
 
+	for {
 		// Request pods from all namespaces
 		pods, err := clientset.CoreV1().Pods(v1.NamespaceAll).List(metav1.ListOptions{})
 		if err != nil {
 			panic(err.Error())
 		}
-
+		// Check for pods
 		for _, pod := range pods.Items {
+			// If scheduler name is set and node is not assigned
 			if pod.Spec.SchedulerName == *schedulerName && pod.Spec.NodeName == "" {
 
+				// Schedule the pod to a random node
 				err := schedule(pod.Name, randomNode(), pod.Namespace)
 
 				if err != nil {
@@ -71,7 +72,6 @@ func main() {
 				}
 			}
 		}
-
 		time.Sleep(10 * time.Second)
 	}
 }
@@ -94,9 +94,16 @@ func schedule(pod, node, namespace string) error {
 
 	fmt.Printf("Assigning %s/%s to %s\n", namespace, pod, node)
 
-	binding := v1.Binding{ObjectMeta: metav1.ObjectMeta{Name: pod}, Target: v1.ObjectReference{
-		Kind: "Node", APIVersion: "v1", Name: node,
-	}}
+	// Create a binding with pod and node
+	binding := v1.Binding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: pod,
+		},
+		Target: v1.ObjectReference{
+			Kind:       "Node",
+			APIVersion: "v1",
+			Name:       node,
+		}}
 
 	return clientset.CoreV1().Pods(namespace).Bind(&binding)
 }

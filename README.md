@@ -1,29 +1,49 @@
-## Example Kubernetes Scheduler
+## Kubernetes Scheduler Example [![Docker build](https://img.shields.io/docker/automated/onuryilmaz/k8s-scheduler-example.svg)](https://hub.docker.com/r/onuryilmaz/k8s-scheduler-example/tags/)
 
-### Tools
-* Docker
+This repository contains a Kubernetes scheduler code for random node assignment.
 
-### Build
-**Go binary for outside cluster usage:**
+### Build and push
 ```
-make build
-```
-It will create a binary for your host operating system using cross-platform build inside Go Docker container.
- 
-**Docker image for inside the cluster usage:**
-```
-make docker-build
+$ make docker-build
+$ make docker-push
 ```
 
-### Run
-**Outside cluster:**
+
+### Example usage
+
+
+#### Create a pod with custom scheduler:
 ```
-./scheduler
+$ kubectl apply -f deploy/pod.yaml
+$ kubectl get pods
+NAME  		READY     STATUS    RESTARTS   AGE
+nginx          0/1       Pending   0          5s
 ```
- 
-**Docker image for inside the cluster usage:**
+
+#### Deploy the scheduler into cluster:
 ```
-make k8s-run k8s-logs
+$ kubectl apply -f deploy/scheduler.yaml
+```
+
+#### Check the pods:
+```
+$ kubectl get pods
+NAME        READY     STATUS    RESTARTS   AGE
+nginx       1/1       Running   0          44s
+scheduler   1/1       Running   0          17s
+```
+
+#### Check the logs of scheduler:
+```
+$ kubectl logs scheduler
+Starting scheduler: packt-scheduler
+Assigning default/nginx to minikube 
+```
+
+### Cleanup
+```
+$ kubectl delete -f deploy/pod.yaml
+$ kubectl delete -f deploy/scheduler.yaml
 ```
 
 ### Dependency Management
